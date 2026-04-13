@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensor Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h1>Firewatch Dashboard</h1>
+
+    <!-- Unit 1 -->
+    <div class="unit">
+        <h2>Unit 1</h2>
+        <div class="sensor-grid">
+
+            <!-- Internal Temp -->
+            <div class="gauge" id="internalTempGauge">
+                <span class="label">Internal Temp</span>
+                <div class="circle">
+                    <span class="value" id="internalTempValue">--°C</span>
+                </div>
+            </div>
+
+            <!-- External Temp -->
+            <div class="gauge" id="externalTempGauge">
+                <span class="label">External Temp</span>
+                <div class="circle">
+                    <span class="value" id="externalTempValue">--°C</span>
+                </div>
+            </div>
+
+            <!-- Internal Humidity -->
+            <div class="humidity" id="internalHumidityBox">
+                <span class="label">Internal Humidity</span>
+                <div class="vertical-bar">
+                    <div class="vertical-fill" id="internalHumidityFill"></div>
+                </div>
+                <span class="humidity-value" id="internalHumidityValue">--%</span>
+            </div>
+
+            <!-- External Humidity -->
+            <div class="humidity" id="externalHumidityBox">
+                <span class="label">External Humidity</span>
+                <div class="vertical-bar">
+                    <div class="vertical-fill" id="externalHumidityFill"></div>
+                </div>
+                <span class="humidity-value" id="externalHumidityValue">--%</span>
+            </div>
+
+            <!-- Other sensors -->
+            <div class="sensor" id="smoke">Smoke: --</div>
+            <div class="sensor" id="voc">VOC: --</div>
+            <div class="sensor" id="methane">Methane: --</div>
+            <div class="sensor" id="co">CO: --</div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+const deviceId = "1C:DB:D4:47:6B:FC";
+const apiUrl = `https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/sensors/${deviceId}`;
+
+fetch(apiUrl)
+  .then(res => {
+    console.log("STATUS:", res.status);
+    return res.json();
+  })
+  .then(data => {
+    console.log("DATA:", data);
+
+    if (!data.internalTemp) {
+      console.error("Bad response from API:", data);
+      return;
+    }
+
+    // --- Temps ---
+    const internalTemp = data.internalTemp;
+    const externalTemp = data.externalTemp;
+
+    updateGauge("internalTempGauge", internalTemp);
+    updateGauge("externalTempGauge", externalTemp);
+
+    document.getElementById("internalTempValue").textContent = internalTemp.toFixed(2) + "°C";
+    document.getElementById("externalTempValue").textContent = externalTemp.toFixed(2) + "°C";
+
+    // --- Humidity ---
+    document.getElementById("internalHumidityFill").style.height = data.internalHumidity.toFixed(2) + "%";
+    document.getElementById("externalHumidityFill").style.height = data.externalHumidity.toFixed(2) + "%";
+
+    document.getElementById("internalHumidityValue").textContent = data.internalHumidity.toFixed(2) + "%";
+    document.getElementById("externalHumidityValue").textContent = data.externalHumidity.toFixed(2) + "%";
+
+    // --- Other sensors ---
+    document.getElementById("smoke").textContent = `Smoke: ${data.smoke.toFixed(2)}`;
+    document.getElementById("voc").textContent = `VOC: ${data.voc.toFixed(2)}`;
+    document.getElementById("methane").textContent = `Methane: ${data.methane.toFixed(2)}`;
+    document.getElementById("co").textContent = `CO: ${data.co.toFixed(2)}`;
+
+  })
+  .catch(err => {
+    console.error("FETCH ERROR:", err);
+  });
+
+function updateGauge(id, temp) {
+  const circle = document.querySelector(`#${id} .circle`);
+
+  const min = 0;
+  const max = 54.4;
+  let percentage = ((temp - min) / (max - min)) * 100;
+
+  let color;
+  if (temp > max) {
+    color = "red";
+    percentage = 100;
+  } else if (temp > 37.7) {
+    color = "orange";
+  } else if (temp < min) {
+    color = "blue";
+    percentage = 0;
+  } else {
+    color = "#4e73df";
+  }
+
+  circle.style.background =
+    `conic-gradient(${color} ${percentage}%, #e6e6e6 ${percentage}%)`;
+}
+</script>
+
+</body>
+</html>
