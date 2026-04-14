@@ -7,15 +7,16 @@
 </head>
 <body>
 
+<select id="deviceSelector"></select>
+
 <div class="dashboard-container">
     <h1>Firewatch Dashboard</h1>
 
-    <!-- Unit 1 -->
+    <!-- Dashboard Layout -->
     <div class="unit">
-        <h2>Unit 1</h2>
         <div class="sensor-grid">
 
-            <!-- Internal Temp -->
+            <!--Internal Temp-->
             <div class="gauge" id="internalTempGauge">
                 <span class="label">Internal Temp</span>
                 <div class="circle">
@@ -23,7 +24,7 @@
                 </div>
             </div>
 
-            <!-- External Temp -->
+            <!--External Temp-->
             <div class="gauge" id="externalTempGauge">
                 <span class="label">External Temp</span>
                 <div class="circle">
@@ -31,7 +32,7 @@
                 </div>
             </div>
 
-            <!-- Internal Humidity -->
+            <!--Internal Humidity-->
             <div class="humidity" id="internalHumidityBox">
                 <span class="label">Internal Humidity</span>
                 <div class="vertical-bar">
@@ -40,7 +41,7 @@
                 <span class="humidity-value" id="internalHumidityValue">--%</span>
             </div>
 
-            <!-- External Humidity -->
+            <!--External Humidity-->
             <div class="humidity" id="externalHumidityBox">
                 <span class="label">External Humidity</span>
                 <div class="vertical-bar">
@@ -49,7 +50,7 @@
                 <span class="humidity-value" id="externalHumidityValue">--%</span>
             </div>
 
-            <!-- Other sensors -->
+            <!--Mems suite-->
             <div class="sensor" id="smoke">Smoke: --</div>
             <div class="sensor" id="voc">VOC: --</div>
             <div class="sensor" id="methane">Methane: --</div>
@@ -61,49 +62,74 @@
 </div>
 
 <script>
-const deviceId = "1C:DB:D4:47:6B:FC";
-const apiUrl = `https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/sensors/${deviceId}`;
+const devices = {
+    "Unit 1": "1C:DB:D4:47:6B:FC",
+    "Unit 2": "AA:BB:CC:DD:EE:FF",
+    "Unit 3": "11:22:33:44:55:66"
+};
 
-fetch(apiUrl)
-  .then(res => {
-    console.log("STATUS:", res.status);
-    return res.json();
-  })
-  .then(data => {
-    console.log("DATA:", data);
+const selector = document.getElementById("deviceSelector");
 
-    if (!data.internalTemp) {
-      console.error("Bad response from API:", data);
-      return;
-    }
+Object.keys(devices).forEach(name => {
+    const option = document.createElement("option");
+    option.value = devices[name];
+    option.textContent = name;
+    selector.appendChild(option);
+});
 
-    // --- Temps ---
-    const internalTemp = data.internalTemp;
-    const externalTemp = data.externalTemp;
+function loadDeviceData(deviceId) {
+    const apiUrl = 'https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/sensors/${deviceId}';
+    
+    fetch(apiUrl)
+        .then(res => {
+            console.log("STATUS:", res.status);
+            return res.json();
+        })
+        .then(data => {
+            console.log("DATA:", data);
 
-    updateGauge("internalTempGauge", internalTemp);
-    updateGauge("externalTempGauge", externalTemp);
+            if (data.internalTemp === undefined) {
+                console.error("Bad response from API:", data);
+                return;
+            }
 
-    document.getElementById("internalTempValue").textContent = internalTemp.toFixed(2) + "°C";
-    document.getElementById("externalTempValue").textContent = externalTemp.toFixed(2) + "°C";
+            // Temperature values
+            updateGauge("internalTempGauge", data.internalTemp);
+            updateGauge("externalTempGauge", data.externalTemp);
 
-    // --- Humidity ---
-    document.getElementById("internalHumidityFill").style.height = data.internalHumidity.toFixed(2) + "%";
-    document.getElementById("externalHumidityFill").style.height = data.externalHumidity.toFixed(2) + "%";
+            document.getElementById("internalTempValue").textContent = data.internalTemp.toFixed(2) + "°C";
+            document.getElementById("externalTempValue").textContent = data.externalTemp.toFixed(2) + "°C";
 
-    document.getElementById("internalHumidityValue").textContent = data.internalHumidity.toFixed(2) + "%";
-    document.getElementById("externalHumidityValue").textContent = data.externalHumidity.toFixed(2) + "%";
+            // Humidity values
+            document.getElementById("internalHumidityFill").style.height = data.internalHumidity.toFixed(2) + "%";
+            document.getElementById("externalHumidityFill").style.height = data.externalHumidity.toFixed(2) + "%";
 
-    // --- Other sensors ---
-    document.getElementById("smoke").textContent = `Smoke: ${data.smoke.toFixed(2)}`;
-    document.getElementById("voc").textContent = `VOC: ${data.voc.toFixed(2)}`;
-    document.getElementById("methane").textContent = `Methane: ${data.methane.toFixed(2)}`;
-    document.getElementById("co").textContent = `CO: ${data.co.toFixed(2)}`;
+            document.getElementById("internalHumidityValue").textContent = data.internalHumidity.toFixed(2) + "%";
+            document.getElementById("externalHumidityValue").textContent = data.externalHumidity.toFixed(2) + "%";
 
-  })
-  .catch(err => {
-    console.error("FETCH ERROR:", err);
-  });
+            // Mems suite values
+            document.getElementById("smoke").textContent = 'Smoke: ${data.smoke.toFixed(2)}';
+            document.getElementById("voc").textContent = 'VOC: ${data.smoke.toFixed(2)}';
+            document.getElementById("methane").textContent = 'Methane: ${data.methane.toFixed(2)}';
+            document.getElementById("co").textContent = 'CO: ${data.co.toFixed(2)}';
+        })
+        .catch(err => {
+            console.error("FETCH ERROR:", err);
+        });
+}
+
+//dropdown change handler
+selector.addEventListener("change", () => {
+    loadDeviceData(selector.value);
+});
+
+//init load
+loadDeviceData(selector.value);
+
+//auto-refresh
+setInterval(() => {
+    loadDeviceData(selector.value);
+}, 5000);
 
 function updateGauge(id, temp) {
   const circle = document.querySelector(`#${id} .circle`);
