@@ -78,7 +78,7 @@ Object.keys(devices).forEach(name => {
 });
 
 function loadDeviceData(deviceId) {
-    const apiUrl = 'https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/sensors/${deviceId}';
+    const apiUrl = `https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/sensors/${deviceId}`;
     
     fetch(apiUrl)
         .then(res => {
@@ -108,10 +108,10 @@ function loadDeviceData(deviceId) {
             document.getElementById("externalHumidityValue").textContent = data.externalHumidity.toFixed(2) + "%";
 
             // Mems suite values
-            document.getElementById("smoke").textContent = 'Smoke: ${data.smoke.toFixed(2)}';
-            document.getElementById("voc").textContent = 'VOC: ${data.smoke.toFixed(2)}';
-            document.getElementById("methane").textContent = 'Methane: ${data.methane.toFixed(2)}';
-            document.getElementById("co").textContent = 'CO: ${data.co.toFixed(2)}';
+            document.getElementById("smoke").textContent = `Smoke: ${data.smoke.toFixed(2)}`;
+            document.getElementById("voc").textContent = `VOC: ${data.smoke.toFixed(2)}`;
+            document.getElementById("methane").textContent = `Methane: ${data.methane.toFixed(2)}`;
+            document.getElementById("co").textContent = `CO: ${data.co.toFixed(2)}`;
         })
         .catch(err => {
             console.error("FETCH ERROR:", err);
