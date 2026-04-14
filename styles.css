@@ -12,35 +12,6 @@ body {
     align-items: center;
     height: 100vh;
 }
-
-/* Login Box */
-.login-container {
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    width: 300px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    text-align: center;
-}
-
-.input-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.input-group label {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
 button {
     width: 100%;
     padding: 10px;
@@ -170,4 +141,11 @@ button:hover {
 .humidity-value {
     font-size: 14px;
     font-weight: bold;
+}
+
+#deviceSelector {
+    display: block;
+    margin: 15px auto 20px auto;
+    padding: 8px 12px;
+    font-size: 16px;
 }
