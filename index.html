@@ -4,6 +4,44 @@
     <meta charset="UTF-8">
     <title>Sensor Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        #email-signup {
+            margin: 30px auto;
+            max-width: 400px;
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        #email-signup h3 {
+            margin-bottom: 12px;
+        }
+        #email-signup input[type="email"] {
+            width: 70%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        #email-signup button {
+            padding: 8px 16px;
+            margin-left: 8px;
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #email-signup button:hover {
+            background-color: #375abd;
+        }
+        #email-signup #status {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 
@@ -66,7 +104,17 @@
     <img id="unitPhoto" src="" alt="Camera Image" />
 </div>
 
+<!-- Email Alert Signup -->
+<div id="email-signup">
+    <h3>Get FireWatch Alerts via Email</h3>
+    <input type="email" id="email" placeholder="you@example.com" />
+    <button onclick="subscribe()">Subscribe</button>
+    <p id="status"></p>
+</div>
+
 <script>
+// ─── Dashboard ───────────────────────────────────────────────────────────────
+
 const devices = {
     "Unit 1": "1C:DB:D4:47:6B:FC",
     "Unit 2": "AA:BB:CC:DD:EE:FF",
@@ -118,11 +166,9 @@ function loadDeviceData(deviceId) {
             document.getElementById("methane").textContent = `Methane: ${data.methane.toFixed(2)}`;
             document.getElementById("co").textContent = `CO: ${data.co.toFixed(2)}`;
 
-            //Camera photo
+            // Camera photo
             const img = document.getElementById("unitPhoto");
-
             const imageUrl = data.S3_Address;
-
             if (imageUrl) {
                 img.style.display = "block";
                 img.src = imageUrl;
@@ -136,41 +182,68 @@ function loadDeviceData(deviceId) {
         });
 }
 
-//dropdown change handler
+// Dropdown change handler
 selector.addEventListener("change", () => {
     loadDeviceData(selector.value);
 });
 
-//init load
+// Init load
 loadDeviceData(selector.value);
 
-//auto-refresh
+// Auto-refresh every 5 seconds
 setInterval(() => {
     loadDeviceData(selector.value);
 }, 5000);
 
 function updateGauge(id, temp) {
-  const circle = document.querySelector(`#${id} .circle`);
+    const circle = document.querySelector(`#${id} .circle`);
+    const min = 0;
+    const max = 54.4;
+    let percentage = ((temp - min) / (max - min)) * 100;
 
-  const min = 0;
-  const max = 54.4;
-  let percentage = ((temp - min) / (max - min)) * 100;
+    let color;
+    if (temp > max) {
+        color = "red";
+        percentage = 100;
+    } else if (temp > 37.7) {
+        color = "orange";
+    } else if (temp < min) {
+        color = "blue";
+        percentage = 0;
+    } else {
+        color = "#4e73df";
+    }
 
-  let color;
-  if (temp > max) {
-    color = "red";
-    percentage = 100;
-  } else if (temp > 37.7) {
-    color = "orange";
-  } else if (temp < min) {
-    color = "blue";
-    percentage = 0;
-  } else {
-    color = "#4e73df";
-  }
+    circle.style.background =
+        `conic-gradient(${color} ${percentage}%, #e6e6e6 ${percentage}%)`;
+}
 
-  circle.style.background =
-    `conic-gradient(${color} ${percentage}%, #e6e6e6 ${percentage}%)`;
+// ─── Email Signup ─────────────────────────────────────────────────────────────
+
+async function subscribe() {
+    const email = document.getElementById('email').value;
+    const status = document.getElementById('status');
+
+    if (!email) {
+        status.textContent = '❌ Please enter an email address.';
+        return;
+    }
+
+    status.textContent = 'Subscribing...';
+
+    try {
+        const res = await fetch('https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        status.textContent = res.ok
+            ? '✅ Check your inbox to confirm your subscription!'
+            : '❌ Error: ' + data.message;
+    } catch (err) {
+        status.textContent = '❌ Network error. Please try again.';
+    }
 }
 </script>
 
