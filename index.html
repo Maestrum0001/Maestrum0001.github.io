@@ -232,7 +232,7 @@ async function subscribe() {
     status.textContent = 'Subscribing...';
 
     try {
-        const res = await fetch('https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/subscribe', {
+        const res = await fetch('https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/sensors/emailAlerts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
