@@ -50,6 +50,7 @@
         <h1>Firewatch Dashboard</h1>
         <select id="deviceSelector"></select>
     </div>
+    <div id="alertBanner" style="display:none;"></div>
 
     <!-- Dashboard Layout -->
     <div class="unit">
@@ -116,8 +117,8 @@
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
 const devices = {
-    "Unit 1": "90:70:69:35:F4:58",
-    "Unit 2": "1C:DB:D4:47:6B:FC",
+    "Unit 1": "device1",
+    "Unit 2": "device2",
     "Unit 3": "11:22:33:44:55:66"
 };
 
@@ -162,11 +163,11 @@ function loadDeviceData(deviceId) {
 
             // Mems suite values
             document.getElementById("smoke").textContent = `Smoke: ${data.smoke.toFixed(2)}`;
-            document.getElementById("voc").textContent = `VOC: ${data.smoke.toFixed(2)}`;
+            document.getElementById("voc").textContent = `VOC: ${data.voc.toFixed(2)}`;
             document.getElementById("methane").textContent = `Methane: ${data.methane.toFixed(2)}`;
             document.getElementById("co").textContent = `CO: ${data.co.toFixed(2)}`;
 
-            // Camera photo
+            // picture display
             const img = document.getElementById("unitPhoto");
             const imageUrl = data.S3_Address;
             if (imageUrl) {
@@ -175,6 +176,25 @@ function loadDeviceData(deviceId) {
             } else {
                 img.src = "";
             }
+
+            const banner = document.getElementById("alertBanner");
+
+            document.body.classList.remove("alert-active");
+            banner.style.display = "none";
+            banner.textContent = "";
+
+            if (data.fire_bool === true) {
+                document.body.classList.add("alert-active");
+                banner.style.display = "block";
+                banner.textContent = "ALERT: A POTENTIAL FIRE HAS BEEN DETECTED AT THIS UNIT. MONITOR SURROUNDINGS AND CONTACT LOCAL FIRE DEPARTMENT.";
+            }
+
+            else if (data.tamper_bool === true) {
+                document.body.classList.add("alert-active");
+                banner.style.display = "block";
+                banner.textContent = "ALERT: POTENTIAL TAMPERING HAS BEEN DETECTED AT THIS UNIT. VALIDATE SYSTEM STATUS AND REFER TO LOCATION INFORMATION.";
+            }
+
             console.log("FULL DATA:", data);
         })
         .catch(err => {
