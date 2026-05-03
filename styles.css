@@ -155,7 +155,11 @@ body {
 .dashboard-container,
 .image-container,
 #unit-photo-container {
-    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
 }
 
 .dashboard-container,
