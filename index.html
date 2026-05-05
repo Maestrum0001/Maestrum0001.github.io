@@ -114,6 +114,37 @@ Object.keys(devices).forEach(name => {
     selector.appendChild(option);
 });
 
+function sensorMalfunction(data) {
+    let issues = [];
+
+    const sensorsToCheck = ["smoke", "voc", "methane", "co"];
+
+    sensorsToCheck.forEach(key => {
+        if (data[key] <= 0) {
+            issues.push(`${key.toUpperCase()} IS NON-POSITIVE`);
+        }
+        if (data[key] > 3.3) {
+            issues.push(`${key.toUpperCase()} EXCEEDS SENSOR RANGE`);
+        }
+    });
+
+    if (data.internalTemp < -40 || data.internalTemp > 85) {
+        issues.push("INTERNAL TEMPERATURE OUT OF RANGE");
+    }
+    if (data.externalTemp < -40 || data.externalTemp > 85) {
+        issues.push("EXTERNAL TEMPERATURE OUT OF RANGE");
+    }
+
+    if (data.internalHumidity < 0 || data.internalHumidity > 100) {
+        issues.push("INTERNAL HUMIDITY OUT OF RANGE");
+    }
+    if (data.externalHumidity < 0 || data.externalHumidity > 100) {
+        issues.push("EXTERNAL HUMIDITY OUT OF RANGE");
+    }
+
+    return issues;
+}
+
 function loadDeviceData(deviceId) {
     const apiUrl = `https://vu0v9n00ng.execute-api.us-east-1.amazonaws.com/sensors/${deviceId}`;
     
@@ -191,6 +222,16 @@ function loadDeviceData(deviceId) {
                 document.body.classList.add("alert-active");
                 banner.style.display = "block";
                 banner.textContent = "ALERT: POTENTIAL TAMPERING HAS BEEN DETECTED AT THIS UNIT. VALIDATE SYSTEM STATUS AND REFER TO LOCATION INFORMATION.";
+            }
+
+            let malfunctionIssues = sensorMalfunction(data);
+
+            if (malfunctionIssues.length > 0) {
+                document.body.classList.add("alert-active");
+                banner.style.display = "block";
+
+                banner.textContent = 
+                    "SENSOR MALFUNCTION DETECTED: " + malfunctionIssues.join(", ");
             }
 
             if (data.latitude && data.longitude) {
