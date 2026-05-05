@@ -153,13 +153,13 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
 }
 
 #unitPhoto {
     width: 100%;
-    max-width: 500px;
-    height: 375px;
+    max-width: 375px;
+    height: 500px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     object-fit: contain;
